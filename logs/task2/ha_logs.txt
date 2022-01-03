@@ -1,0 +1,34 @@
+[s6-init] making user provided files available at /var/run/s6/etc...exited 0.
+[s6-init] ensuring user provided files have correct perms...exited 0.
+[fix-attrs.d] applying ownership & permissions fixes...
+[fix-attrs.d] done.
+[cont-init.d] executing container initialization scripts...
+[cont-init.d] done.
+[services.d] starting services
+/opt/bin/serf agent --join ha --replay --event-handler member-join=/serf-handlers/member-join.sh --event-handler member-leave,member-failed=/serf-handlers/member-leave.sh --tag role=balancer
+==> Starting Serf agent...
+==> Starting Serf agent RPC...
+==> Serf agent running!
+         Node name: '72611f825471'
+         Bind addr: '0.0.0.0:7946'
+                       RPC addr: '127.0.0.1:7373'
+                      Encrypted: false
+                       Snapshot: false
+                        Profile: lan
+    Message Compression Enabled: true
+==> Joining cluster...(replay: true)
+[services.d] done.
+    Join completed. Synced with 1 initial agents
+
+==> Log data will now stream in as it occurs:
+
+    2022/01/03 13:24:25 [INFO] agent: Serf agent starting
+    2022/01/03 13:24:25 [INFO] serf: EventMemberJoin: 72611f825471 192.168.42.42
+    2022/01/03 13:24:25 [INFO] agent: joining: [ha] replay: true
+    2022/01/03 13:24:25 [INFO] agent: joined: 1 nodes
+[WARNING] 002/132425 (205) : Server nodes/s1 is DOWN, reason: Layer4 connection problem, info: "Connection refused", check duration: 0ms. 1 active and 0 backup servers left. 0 sessions active, 0 requeued, 0 remaining in queue.
+    2022/01/03 13:24:26 [INFO] serf: EventMemberJoin: dd275b383850 192.168.42.22
+    2022/01/03 13:24:26 [INFO] serf: EventMemberJoin: 8150be7ba1f8 192.168.42.11
+    2022/01/03 13:24:27 [INFO] agent: Received event: member-join
+    2022/01/03 13:24:27 [ERR] agent: Error invoking script '/serf-handlers/member-join.sh': exit status 127
+[WARNING] 002/132429 (205) : Server nodes/s1 is UP, reason: Layer7 check passed, code: 200, check duration: 5ms. 2 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
