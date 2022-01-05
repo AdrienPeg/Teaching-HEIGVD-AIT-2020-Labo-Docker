@@ -1,0 +1,40 @@
+[s6-init] making user provided files available at /var/run/s6/etc...exited 0.
+[s6-init] ensuring user provided files have correct perms...exited 0.
+[fix-attrs.d] applying ownership & permissions fixes...
+[fix-attrs.d] done.
+[cont-init.d] executing container initialization scripts...
+[cont-init.d] done.
+[services.d] starting services
+/opt/bin/serf agent --join ha --replay --event-handler member-join=/serf-handlers/member-join.sh --event-handler member-leave,member-failed=/serf-handlers/member-leave.sh --tag role=balancer
+==> Starting Serf agent...
+==> Starting Serf agent RPC...
+==> Serf agent running!
+         Node name: 'fa6a6722fc00'
+         Bind addr: '0.0.0.0:7946'
+                       RPC addr: '127.0.0.1:7373'
+                      Encrypted: false
+                       Snapshot: false
+                        Profile: lan
+    Message Compression Enabled: true
+==> Joining cluster...(replay: true)
+    Join completed. Synced with 1 initial agents
+
+==> Log data will now stream in as it occurs:
+
+    2022/01/03 14:47:51 [INFO] agent: Serf agent starting
+    2022/01/03 14:47:51 [INFO] serf: EventMemberJoin: fa6a6722fc00 192.168.42.42
+    2022/01/03 14:47:51 [INFO] agent: joining: [ha] replay: true
+    2022/01/03 14:47:51 [INFO] agent: joined: 1 nodes
+[services.d] done.
+    2022/01/03 14:47:52 [INFO] agent: Received event: member-join
+[WARNING] 002/144753 (202) : Server nodes/s1 is DOWN, reason: Layer4 timeout, check duration: 2001ms. 1 active and 0 backup servers left. 0 sessions active, 0 requeued, 0 remaining in queue.
+[WARNING] 002/144754 (202) : Server nodes/s2 is DOWN, reason: Layer4 timeout, check duration: 2003ms. 0 active and 0 backup servers left. 0 sessions active, 0 requeued, 0 remaining in queue.
+[NOTICE] 002/144754 (202) : haproxy version is 2.2.19-7ea3822
+[NOTICE] 002/144754 (202) : path to executable is /usr/local/sbin/haproxy
+[ALERT] 002/144754 (202) : backend 'nodes' has no server available!
+    2022/01/03 14:51:08 [INFO] serf: EventMemberJoin: 3117e30878aa 192.168.42.11
+    2022/01/03 14:51:09 [INFO] agent: Received event: member-join
+[WARNING] 002/145112 (202) : Server nodes/s1 is UP, reason: Layer7 check passed, code: 200, check duration: 3ms. 1 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.
+    2022/01/03 14:58:54 [INFO] serf: EventMemberJoin: 25284a58997f 192.168.42.22
+    2022/01/03 14:58:55 [INFO] agent: Received event: member-join
+[WARNING] 002/145858 (202) : Server nodes/s2 is UP, reason: Layer7 check passed, code: 200, check duration: 17ms. 2 active and 0 backup servers online. 0 sessions requeued, 0 total in queue.

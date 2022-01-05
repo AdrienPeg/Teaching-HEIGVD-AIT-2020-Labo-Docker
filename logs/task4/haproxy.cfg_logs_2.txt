@@ -1,0 +1,1 @@
+Container c0570376273d has joined the Serf cluster with the following IP address: 192.168.42.11

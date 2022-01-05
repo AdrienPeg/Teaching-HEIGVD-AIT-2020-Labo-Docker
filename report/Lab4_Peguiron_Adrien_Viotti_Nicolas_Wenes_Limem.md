@@ -58,252 +58,130 @@ We had no real difficulties during this task as it was well documented.
 >
 > **Deliverables:**
 >
-> 1. There is different way to implement the sticky session. One possibility is to use the SERVERID provided by HAProxy. Another way is to use the NODESESSID provided by the application. Briefly explain the difference between both approaches (provide a sequence diagram with cookies to show the difference).
+> 1. Provide the docker log output for each of the containers: `ha`, `s1` and `s2`. You need to create a folder `logs` in your repository to store the files separately from the lab report. For each lab task create a folder and name it using the task number. No need to create a folder when there are no logs.
 
-The difference is the entity who will deliver the cookie. for SERVERID it is HAProxy who takes care of it while for NODESESSID, it will be the application. 
+The logs are available in `logs\task2`
 
-![task2_1](C:\Users\Don Peg\Downloads\AIT-LAB3-NICO\figures\task2_1.png)
+> 2. Give the answer to the question about the existing problem with the current solution.
 
-> - Choose one of the both stickiness approach for the next tasks.
+The issue is that the different nodes will try to connect to the `Serf` cluster via `ha`. If `ha` is not running, they are not able to join the cluster.
 
-We used the SERVERID approach for this lab
+Instead of connecting via `ha`, the nodes should connect to the cluster via the latest node who joined the cluster.
 
-> 2. Provide the modified `haproxy.cfg` file with a short explanation of the modifications you did to enable sticky session management.
+> 3. Give an explanation on how `Serf` is working. Read the official website to get more details about the `GOSSIP` protocol used in `Serf`. Try to find other solutions that can be used to solve similar situations where we need some auto-discovery mechanism.
 
-![image-20211207171938117](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211207171938117.png)
+`GOSSIP` protocols are `infection-style` protocols. If a node wants to share information, it will share it among a subset of its peers who will then share it among a subset of their own peers until every node in the cluster got the information. 
 
-These are the three lines used to make `sticky session` work.
+`Serf` uses this protocol to look for dead nodes. Periodic random probing is used and if a node doesn't respond within a reasonable time, an indirect probe will be attempted. Indirect probing means random nodes will try to probe the failing node. If the indirect probe also fails, the note is registered as suspicious. After some time, if the node hasn't disputed the suspicion, it is considered dead and not a part of the cluster anymore. 
 
-The first one enables cookies and insert the name of the server into it.
-
-The second and third lines add both servers to the load balancer, assign them a name, bind them to an ip address and set the server name in the cookie.
-
-> 3. Explain what is the behavior when you open and refresh the URL [http://192.168.42.42](http://192.168.42.42/) in your browser. Add screenshots to complement your explanations. We expect that you take a deeper a look at session management.
-
-First request : 
-
-![image-20211207173559102](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211207173559102.png)
-
-Second request : 
-
-![image-20211207173638148](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211207173638148.png)
-
-The `sessionViews` parameter has gone up as expected. We can also see that the second request was redirected to the same server has the first request. This means that the session is now persistent.
-
-The cookie SRVNAME contains the name of the server as configured in the previous point : 
-
-![image-20211207173829116](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211207173829116.png)
-
-
-
-> 4. Provide a sequence diagram to explain what is happening when one requests the URL for the first time and then refreshes the page. We want to see what is happening with the cookie. We want to see the sequence of messages exchanged (1) between the browser and HAProxy and (2) between HAProxy and the nodes S1 and S2. We also want to see what is happening when a second browser is used.
-
-![task2_4](C:\Users\Don Peg\Downloads\AIT-LAB3-NICO\figures\task2_4.png)
-
-> 5. Provide a screenshot of JMeter's summary report. Is there a difference with this run and the run of Task 1?
-
-![image-20211207173951850](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211207173951850.png)
-
-Every request is redirected to server1. This means the load balancer is working since it redirects requests from the same client to the same server.
-
-They will either all be redirected to server1 or all to server2 depending on which one received the first request.
-
-> - Clear the results in JMeter.
-> - Now, update the JMeter script. Go in the HTTP Cookie Manager and verify that the box `Clear cookies each iteration?` is unchecked.
-> - Go in `Thread Group` and update the `Number of threads`. Set the value to 2.
->
-> 6. Provide a screenshot of JMeter's summary report. Give a short explanation of what the load balancer is doing.
-
-![image-20211207174536463](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211207174536463.png)
-
-Both server got half of the requests. Both threads were assigned to a different server via cookies and contacted only this server.
-
-
-
-> ### Task 3: Drain mode
+> ###  Task 3: React to membership changes
 >
 > **Deliverables:**
 >
-> 1. Take a screenshot of the Step 5 and tell us which node is answering.
+> 1. Provide the docker log output for each of the containers: `ha`, `s1` and `s2`. Put your logs in the `logs` directory you created in the previous task.
+> 2. Provide the logs from the `ha` container gathered directly from the `/var/log/serf.log` file present in the container. Put the logs in the `logs` directory in your repo.
 
-![image-20211208134813602](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208134813602.png)
+The logs are available in `logs/task3`
 
-Under the `nodes `section, all the activities happened on s1 and s2 has no last known requests. We can deduce that the answering node is s1.
+> ### Task 4: Use a template engine to easily generate configuration files
+>
+> 1. You probably noticed when we added `xz-utils`, we have to rebuild the whole image which took some time. What can we do to mitigate that? Take a look at the Docker documentation on [image layers](https://docs.docker.com/engine/userguide/storagedriver/imagesandcontainers/#images-and-layers). Tell us about the pros and cons to merge as much as possible of the command. In other words, compare:
+>
+> ```
+> RUN command 1
+> RUN command 2
+> RUN command 3
+> ```
+>
+> ​	vs.
+>
+> ```
+> RUN command 1 && command 2 && command 3
+> ```
 
-> 2. Based on your previous answer, set the node in DRAIN mode. Take a screenshot of the HAProxy state page.
+A layer will only be run if it has been modified (or if it has never been run). Otherwise, it will be taken from the cache.
 
-To set up the node in DRAIN mode, a connexion with HAproxy has been established with the help of socat and then the following command has been used :  `set server nodes/s1 state drain`. 
+The first options adds more layers but, if the commands have already been run, a lot of time will be gained thanks to the cache. The second option only takes one layer but if one of the command needs to be rerun, they all will be rerun and it can take a lot of time.
 
-![image-20211208140603153](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208140603153.png)
+Layers are also pulled in parallel from Docker Hub. That means the first option, despite being slightly heavier in size, would get downloaded faster.
 
-On the statistics report, the node status has changed from `UP` to `DRAIN`
+Source : https://stackoverflow.com/questions/39223249/multiple-run-vs-single-chained-run-in-dockerfile-which-is-better
 
-> 3. Refresh your browser and explain what is happening. Tell us if you stay on the same node or not. If yes, why? If no, why?
+> There are also some articles about techniques to reduce the image size. Try to find them. They are talking about `squashing` or `flattening` images.
 
-Yes, we stay on the same node. DRAIN mode will not redirect requests to another node if a connection has been established before the drain mode has been set up. Since we were already connected to s1 beforehand, any request will still be directed towards s1.
+`Squashing` an image will merge multiple layer into one to have fewer and smaller layer in the final image.
 
-> 4. Open another browser and open `http://192.168.42.42`. What is happening?
+Also, deleted files in later layer are purged from the image when it is squashed instead of just being covered.
 
-![image-20211208141227633](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208141227633.png)
+source : https://blog.codacy.com/five-ways-to-slim-your-docker-images/
 
-Upon accessing `http://192.168.42.42` with a new browser, the request will be redirected towards s2 since s1 is only accessible to those who were connected to it before the DRAIN mode
+`Flattening` an image is done by running a container with the image, exporting its file system to an archive and importing the archive to a new image. The new image will have only one layer.
 
-> 5. Clear the cookies on the new browser and repeat these two steps multiple times. What is happening? Are you reaching the node in DRAIN mode?
+source : https://acloudxpert.com/flattening-a-docker-image-to-a-single-layer/ 
 
-No, since the cookies have been deleted, there is no way for the server to know if there was a connection established before. Therefore, no request from this browser will be able to access s1 except if the cookie value is manually changed..
+> 2. Propose a different approach to architecture our images to be able to reuse as much as possible what we have done. Your proposition should also try to avoid as much as possible repetitions between your images.
 
-> 6. Reset the node in READY mode. Repeat the three previous steps and explain what is happening. Provide a screenshot of HAProxy's stats page.
+We could use a new docker image called `teaching-heigvd-ait-2020-labo-docker_base` which contains all the common configuration from both current Dockerfiles. The images for `ha` and the `webapps` would then inherit from this image. This would make both images lighter, and reduce greatly redundancy. 
 
-The command is `set server node/s1 state ready`
+> 3. Provide the `/tmp/haproxy.cfg` file generated in the `ha` container after each step. Place the output into the `logs` folder like you already did for the Docker logs in the previous tasks. Three files are expected.
+>
+>    In addition, provide a log file containing the output of the `docker ps` console and another file (per container) with `docker inspect <container>`. Four files are expected.
 
-![image-20211208141740619](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208141740619.png)
+The logs are available in `logs/task4`
 
-The node is up and running again.
+> 4. Based on the three output files you have collected, what can you say about the way we generate it? What is the problem if any?
 
-The request will be distributed evenly between the two nodes. If a connection from a browser has already been established, the browser will always access the same server. Once the cookies have been reset, it will be redirected towards one of the two servers in a round robin fashion.
+Every output file will replace the last one. With this approach, it is not possible to keep logs.
 
-> 7. Finally, set the node in MAINT mode. Redo the three same steps and explain what is happening. Provide a screenshot of HAProxy's stats page.
-
-The command is `set server node/s1 state maint`
-
-![image-20211208142250849](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208142250849.png)
-
-Every request will be redirected towards s2. Even if a connection to s1 has been established beforehand, upon refresh it is s2 who will be accessed. Clearing the cookie or changing browser will not change this.
-
-> ### Task 4: Round robin in degraded mode
+> ### Task 5: Generate a new load balancer configuration when membership changes
 >
 > **Deliverables:**
 >
-> *Remark*: Make sure you have the cookies are kept between two requests.
+> 
 >
-> 1. Make sure a delay of 0 milliseconds is set on `s1`. Do a run to have a baseline to compare with in the next experiments.
 
-To set the delay : `curl -H "Content-Type: application/json" -X POST -d '{"delay": 0}' http://192.168.42.11:3000/delay`
 
-Run results : 
-
-![image-20211208153048045](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208153048045.png)
-
-Requests are evenly distributed between the two servers.
 
 > 2. Set a delay of 250 milliseconds on `s1`. Relaunch a run with the JMeter script and explain what is happening.
 
-To set the delay : `curl -H "Content-Type: application/json" -X POST -d '{"delay": 250}' http://192.168.42.11:3000/delay`
 
-![image-20211208153912736](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208153912736.png)
-
-Requests are still evenly distributed. The only difference is that since there is a delay on s1 before sending the response, it's throughput dropped to 3.1 requests per second 
 
 > 3. Set a delay of 2500 milliseconds on `s1`. Same than previous step.
 
-To set the delay : `curl -H "Content-Type: application/json" -X POST -d '{"delay": 2500}' http://192.168.42.11:3000/delay`
 
-![image-20211208154411413](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208154411413.png)
 
-Only two response have been received from s1, every other request has been redirected to s2.
-
-The delay was too long and the node was considered down since it took too long to receive a response.
-
-> 4. In the two previous steps, are there any errors? Why?
-
-`jmeter` doesn't show any error, but on the terminal where the servers and proxy are initiated, we see the following warning :
-
-![task4_4](C:\Users\Don Peg\Downloads\AIT-LAB3-NICO\figures\task4_4.png)
-
-The server s1 is considered DOWN because no response has been sent after 2001ms. This is because of the delay of 2500ms. 
-
-Since it is considered down, every requests will be forwarded towards s2.
-
-> 5. Update the HAProxy configuration to add a weight to your nodes. For that, add `weight [1-256]` where the value of weight is between the two values (inclusive). Set `s1` to 2 and `s2` to 1. Redo a run with a 250ms delay.
-
-In the config file, the last two lines have been modified to add weight to the servers : 
-
-![image-20211208155401729](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208155401729.png)
-
-![image-20211208163725086](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208163725086.png)
-
-The results are the same as the first time we did it in step 2. This can be explained by the fact that the sticky sessions are still in action and, since both threads were assigned a different server, they will use it for every request.
-
-> 6. Now, what happens when the cookies are cleared between each request and the delay is set to 250ms? We expect just one or two sentence to summarize your observations of the behavior with/without cookies.
-
-![image-20211208164622381](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208164622381.png)
-
-Since the cookies are cleared, the server doesn't know if a session is established and two requests from the same browser wont necessarily be redirected to the same server.
-
-Now it is the weight of the servers who determines which server will get the request, and since s1 has a weight of 2 while s2 has only a weight of 1, s1 will receive 2/3 of the request while s2 receives only 1/3
-
-> ### Task 5: Balancing strategies
+> ### Task 6: Make the load balancer automatically reload the new configuration
 >
 > **Deliverables:**
 >
-> 1. Briefly explain the strategies you have chosen and why you have chosen them.
+> 1. Take a screenshots of the HAProxy stat page showing more than 2 web applications running. Additional screenshots are welcome to see a sequence of experimentations like shutting down a node and starting more nodes.
 
-We choose to use the strategies `leastconn` and`first`.
+After starting 3 nodes :
 
-We looked at the list of strategies available here : http://cbonte.github.io/haproxy-dconv/2.2/configuration.html#balance.
+![6_1](figures\6_1.png)
 
-The first one on the list not recommended for the lab and the second one is very similar to the first so we decided to pick the next two.
+After stopping the first node :
 
-`Leastconn` will check which server as the least number of connection and connect to this one. Round robin is used when two or more servers have the same load.
+![6_2](figures\6_2.png)
 
-`First` will connect to the first server with available connection slots. The maximum number of possible connections to a server must be specified in the config file in the `maxconn` parameter.
+After restarting the first node :
 
-> 2. Provide evidence that you have played with the two strategies (configuration done, screenshots, ...)
+![6_3](figures\6_3.png)
 
-#### Leastconn :
+> ​	Also provide the output of `docker ps` in a log file. At least one file is expected. You can provide one 	output per step of your experimentation according to your screenshots.
 
-First we need to change the HAproxy config file `haproxy.cfg`
+the files containing the result of the three `docker ps` are available in `logs/task6` 
 
-![image-20211208170313742](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208170313742.png)
+> 2. Give your own feelings about the final solution. Propose improvements or ways to do the things differently. If any, provide references to your readings for the improvements.
 
-At the end of the file, change the balance to leastconn, and remove the extra options and parameter we added to make the sticky session work.
+This solution works well for a small number of nodes. However, if the number of connections greatly increases there would be some issues. Since nodes container must be declared in the file `docker-compose.yml` and their attributes in the `.env` file, it can be quite problematic for bigger infrastructures.
 
-The end of the config file should look like the picture above.
+A solution would be to use the `--scale` option when using the `docker-compose up --build` command to run our containers. Only one instance of the webapp need to be declared in the `docker-compose.yaml` and, admitting we named it `webapp`, we can now launch `x` containers with the following command :  `docker-compose up --build --scale webapp=x`. Where `x` is the number of containers. 
 
-Then rebuild the two containers and connect to `192.168.42.42`.
+source : https://pspdfkit.com/blog/2018/how-to-use-docker-compose-to-run-multiple-instances-of-a-service-in-development/
 
-If refresh the page, it will always change server on each session. This is because the connection is closed once the response is sent and then when the next request comes, both server have 0 connections and the round robin method is used.
+Another issue would be if the load balancer container crashes, everything would go down. It could be mitigated by adding another one as a backup option.
 
-To have a better understanding on how it works, we can add some delay to the response and use `jmeter`. Here's the result with 250ms of delay on s1 :
+####  Conclusion
 
-![image-20211208171355852](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208171355852.png)
-
-s2 receives a lot more requests than s1. It is because while s1 is busy responding, every request is redirected to s2. The difference with round robin is that it is way faster to redirect to another server while the first is occupied, than to distribute requests evenly and wait longer if you are assigned to the slower server.
-
-#### First :
-
-Like for `Leastconn` we need to edit `haproxy.cfg`
-
-![image-20211208172135436](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208172241900.png)
-
-We change the balance to `first` and we add a new parameter `maxconn` to both our servers. This parameter represents how many connections can be established before having to redirect requests to another server. 
-
-Here are the results with 0 delay :
-
-![image-20211208172740195](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208172740195.png)
-
-since we are currently testing with 2 threads, there will be at most 2 requests at the same time and since s1 accept 2 connections and is the first one available, no request will ever go to s2.
-
-if we add one more thread to the tests :
-
-![image-20211208173010428](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208173010428.png)
-
-We see that roughly one out of three request are now sent to s2. That is because the first request will see that s1 is free and be redirected to it, the second one will do the same, and once a third request comes, it will see that s1 has reached the maximum number of connections (2) and will be redirected to s2.
-
-If we add a 250ms delay on s1 as well as 2 more threads :
-
-![image-20211208173633571](C:\Users\Don Peg\AppData\Roaming\Typora\typora-user-images\image-20211208173633571.png)
-
-When 2 connections on s1 are waiting for the delay, every request is redirected to s2 who can produce responses way faster and be able to accept a new request.
-
-> 3. Compare the two strategies and conclude which is the best for this lab (not necessary the best at all).
-
-They are both good for long connections. `first` purpose is to use as little server as possible while `leastconn` goal is to distribute connection evenly among every server. 
-
-For this lab, `leastconn` seems more adapted since we want to use both server. 
-
-Furthermore, `first `would require a lot of modification of the `maxconn` parameter and could result in some unwanted results if it is forgotten. 
-
-#### Conclusion
-
-In this lab, we learned a lot about load balancers, how they work and their different strategies. Having a well configured load balancer in a complex infrastructure can really optimize performances and avoid issues. There is of course a lot more to them, but having a general understanding is whiteout a doubt very useful.
+In this lab, we expanded our knowledge on load balancers, and learned how to successfully manage spikes of connection. This issue can very well happen in real life scenarios and it is useful to know how to react in this case.
