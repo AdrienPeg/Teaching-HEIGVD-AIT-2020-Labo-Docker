@@ -2,11 +2,35 @@
 
 Authors : Peguiron A., Viotti N., Wènes L. - 03.01.2022
 
-#### Table des matières 
+#### Table of content
+
+[Introduction](#intro)
+
+[Task 0](#task0)
+
+[Task 1](#task1)
+
+[Task 2](#task2)
+
+[Task 3](#task3)
+
+[Task 4](#task4)
+
+[Task 5](#task5)
+
+[Task 6](#task6)
+
+[Difficulties](#diff)
+
+[Conclusion](#conc)  
+
+<a name="intro"/>
 
 #### Introduction
 
 In this lab, we have a more in depth look into load balancers and the issues with the configuration of the preceding lab. The lab starts of by identifying 6 issues with the previous infrastructure, and then we resolve them step by step by adding new functionalities/improvements. Multiple technologies are used like a process supervisor, a tool to manage membership and a template engine.
+
+<a name="task0"/>
 
 > ### Task 0: Identify issues and install the tools
 >
@@ -58,13 +82,15 @@ In this case, we have to write a script the generate  HAProxy config file.
 
 https://github.com/AdrienPeg/Teaching-HEIGVD-AIT-2020-Labo-Docker
 
+<a name="task1"/>
+
 > ### Task 1: Add a process supervisor to run several processes
 >
 > **Deliverables:**
 >
 > 1. Take a screenshot of the stats page of HAProxy at [http://192.168.42.42:1936](http://192.168.42.42:1936/). You should see your backend nodes. It should be really similar to the screenshot of the previous task.
 
-![1_1](figures\1_1.png)
+![1_1](figures/1_1.png)
 
 > 2. Describe your difficulties for this task and your understanding of what is happening during this task. Explain in your own words why are we installing a process supervisor. Do not hesitate to do more research and to find more articles on that topic to illustrate the problem
 
@@ -73,6 +99,8 @@ In this task, we installed a process supervisor called `S6`. This allows multipl
 To use this process supervisor, we must first change the dockerfiles of the webapps and HAProxy to install `s6` , start it as the main process in the containers and give it a starting script. Once it is done, the images must be rebuilt and the containers rerun.
 
 We had no real difficulties during this task as it was well documented.
+
+<a name="task2"/>
 
 > ### Task 2: Add a tool to manage membership in the web server cluster
 >
@@ -94,6 +122,8 @@ Instead of connecting via `ha`, the nodes should connect to the cluster via the 
 
 `Serf` uses this protocol to look for dead nodes. Periodic random probing is used and if a node doesn't respond within a reasonable time, an indirect probe will be attempted. Indirect probing means random nodes will try to probe the failing node. If the indirect probe also fails, the note is registered as suspicious. After some time, if the node hasn't disputed the suspicion, it is considered dead and not a part of the cluster anymore. 
 
+<a name="task3"/>
+
 > ###  Task 3: React to membership changes
 >
 > **Deliverables:**
@@ -102,6 +132,8 @@ Instead of connecting via `ha`, the nodes should connect to the cluster via the 
 > 2. Provide the logs from the `ha` container gathered directly from the `/var/log/serf.log` file present in the container. Put the logs in the `logs` directory in your repo.
 
 The logs are available in `logs/task3`
+
+<a name="task4"/>
 
 > ### Task 4: Use a template engine to easily generate configuration files
 >
@@ -153,11 +185,15 @@ The logs are available in `logs/task4`
 
 Every output file will replace the last one. With this approach, it is not possible to keep logs.
 
+<a name="task5"/>
+
 > ### Task 5: Generate a new load balancer configuration when membership changes
 >
 > **Deliverables:**
 
 All the logs are available in `logs/task5`
+
+<a name="task6"/>
 
 > ### Task 6: Make the load balancer automatically reload the new configuration
 >
@@ -167,15 +203,15 @@ All the logs are available in `logs/task5`
 
 After starting 3 nodes :
 
-![6_1](figures\6_1.png)
+![6_1](figures/6_1.png)
 
 After stopping the first node :
 
-![6_2](figures\6_2.png)
+![6_2](figures/6_2.png)
 
 After restarting the first node :
 
-![6_3](figures\6_3.png)
+![6_3](figures/6_3.png)
 
 > ​	Also provide the output of `docker ps` in a log file. At least one file is expected. You can provide one 	output per step of your experimentation according to your screenshots.
 
@@ -191,9 +227,13 @@ source : https://pspdfkit.com/blog/2018/how-to-use-docker-compose-to-run-multipl
 
 Another issue would be if the load balancer container crashes, everything would go down. It could be mitigated by adding another one as a backup option.
 
+<a name="diff"/>
+
 #### Difficulties
 
 Everything that had to be done was well documented, and a lot of online resources were available to help resolve any issue we encountered. The main difficulty was the fact that the work was done on a lot of file, and sometimes, when an error occurred, it was hard to determine what caused it and where was it coming from. Other than that we were able to finish this lab without any outstanding troubles.
+
+<a name="conc"/>
 
 ####  Conclusion
 
