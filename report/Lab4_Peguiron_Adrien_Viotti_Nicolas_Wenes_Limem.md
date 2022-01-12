@@ -76,7 +76,7 @@ In this case, we have to write a script the generate  HAProxy config file.
 >
 > 1. Take a screenshot of the stats page of HAProxy at [http://192.168.42.42:1936](http://192.168.42.42:1936/). You should see your backend nodes.
 
-![0_1](figures\0_1.png)
+![0_1](figures/0_1.png)
 
 >  ​	  2. Give the URL of your repository URL in the lab report.
 
